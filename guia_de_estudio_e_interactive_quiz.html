@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repaso Express: Geología & Química</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+    </style>
+</head>
+<body class="h-full flex flex-col min-h-screen bg-slate-950 text-slate-100">
+
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-2.5 rounded-xl shadow-lg">
+                    <i class="fa-solid font-bold text-xl fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg sm:text-xl text-white tracking-tight">Estudio Nocturno Express</h1>
+                    <p class="text-xs text-slate-400">40 Preguntas • Geología, Desastres & Química</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <div class="hidden sm:flex flex-col items-end mr-2">
+                    <span class="text-xs text-slate-400">Progreso global</span>
+                    <span id="global-progress-text" class="text-sm font-bold text-indigo-400">0 / 40</span>
+                </div>
+                <button id="reset-btn" class="px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition">
+                    <i class="fa-solid fa-rotate-right mr-1.5"></i>Reiniciar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row gap-6">
+
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 flex-shrink-0 space-y-4">
+            <nav class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 shadow-xl space-y-1">
+                <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-xl transition bg-indigo-600 text-white shadow-md">
+                    <span class="flex items-center"><i class="fa-solid fa-list-check w-6 text-base"></i>Cuestionario (40)</span>
+                    <span id="badge-quiz-score" class="text-xs bg-indigo-800 text-indigo-200 px-2 py-0.5 rounded-full font-bold">0%</span>
+                </button>
+                <button onclick="switchTab('flashcards')" id="tab-flashcards" class="tab-btn w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 rounded-xl transition">
+                    <span class="flex items-center"><i class="fa-solid fa-layer-group w-6 text-base"></i>Tarjetas de Repaso</span>
+                    <i class="fa-solid fa-angle-right text-xs opacity-50"></i>
+                </button>
+                <button onclick="switchTab('summary')" id="tab-summary" class="tab-btn w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 rounded-xl transition">
+                    <span class="flex items-center"><i class="fa-solid fa-book-open w-6 text-base"></i>Resumen Teórico</span>
+                    <i class="fa-solid fa-angle-right text-xs opacity-50"></i>
+                </button>
+            </nav>
+
+            <!-- Quiz Topic Filter Card -->
+            <div id="filter-box" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                    <span>Filtrar por Tema</span>
+                    <i class="fa-solid fa-filter text-indigo-400"></i>
+                </h3>
+                <div class="space-y-1.5 text-xs font-medium">
+                    <button onclick="filterQuiz('all')" class="filter-btn active w-full text-left px-3 py-2 rounded-lg bg-slate-800 text-indigo-300 font-semibold flex justify-between items-center">
+                        <span>Todos los temas</span>
+                        <span class="bg-slate-700/80 px-1.5 py-0.5 rounded text-[10px]">40</span>
+                    </button>
+                    <button onclick="filterQuiz('bloque1')" class="filter-btn w-full text-left px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 flex justify-between items-center">
+                        <span>1. Sismos & Desastres</span>
+                        <span class="bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">20</span>
+                    </button>
+                    <button onclick="filterQuiz('bloque2')" class="filter-btn w-full text-left px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 flex justify-between items-center">
+                        <span>2. Átomo & Química</span>
+                        <span class="bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">20</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Widget -->
+            <div class="bg-gradient-to-br from-indigo-950/40 to-slate-900 border border-indigo-900/30 rounded-2xl p-4 text-center">
+                <div class="text-3xl font-extrabold text-indigo-400" id="stat-score">0 / 40</div>
+                <div class="text-xs text-slate-400 mt-1">Aciertos conseguidos</div>
+                <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
+                    <div id="stat-bar" class="bg-indigo-500 h-full w-0 transition-all duration-500"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Dynamic Content Section -->
+        <section class="flex-grow">
+
+            <div id="view-quiz" class="space-y-4">
+                <!-- Controls bar -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+                    <div class="text-sm text-slate-300 font-medium">
+                        Mostrando: <span id="current-filter-title" class="text-indigo-400 font-bold">Todas las Preguntas (40)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="showAllAnswers()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">
+                             Revelar respuestas
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Questions Container -->
+                <div id="questions-container" class="space-y-4">
+                    <!-- Populated via JavaScript -->
+                </div>
+            </div>
+
+            <div id="view-flashcards" class="hidden space-y-6">
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 text-center space-y-4 max-w-xl mx-auto">
+                    <div class="flex justify-between items-center text-xs text-slate-400 font-semibold uppercase tracking-wider">
+                        <span>Tarjeta <span id="fc-index">1</span> de <span id="fc-total">40</span></span>
+                        <span id="fc-category" class="text-indigo-400 bg-indigo-950/60 px-2.5 py-1 rounded-full">Sismos</span>
+                    </div>
+
+                    <!-- Flashcard Flip Box -->
+                    <div id="flashcard-element" onclick="flipCard()" class="perspective-1000 min-h-[260px] cursor-pointer group">
+                        <div id="flashcard-inner" class="relative w-full h-full min-h-[260px] duration-500 transform-style-3d bg-slate-800/80 border border-slate-700/80 hover:border-indigo-500/50 rounded-2xl p-6 flex items-center justify-center text-center shadow-2xl">
+                            <!-- Front -->
+                            <div class="absolute inset-0 backface-hidden p-6 flex flex-col items-center justify-center space-y-3">
+                                <span class="text-xs text-slate-500 font-mono">Pregunta (Haz clic para voltear)</span>
+                                <h3 id="fc-question" class="text-lg font-bold text-white">¿Cargando tarjeta?</h3>
+                            </div>
+                            <!-- Back -->
+                            <div class="absolute inset-0 backface-hidden rotate-y-180 p-6 flex flex-col items-center justify-center space-y-3 bg-indigo-950/90 rounded-2xl border border-indigo-700">
+                                <span class="text-xs text-indigo-300 font-mono">Respuesta Correcta</span>
+                                <p id="fc-answer" class="text-base font-semibold text-slate-100">Cargando respuesta...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flashcard Controls -->
+                    <div class="flex justify-between items-center pt-2">
+                        <button onclick="prevCard()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-semibold transition">
+                            <i class="fa-solid fa-arrow-left mr-2"></i>Anterior
+                        </button>
+                        <button onclick="flipCard()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition shadow-lg shadow-indigo-600/30">
+                             Voltear
+                        </button>
+                        <button onclick="nextCard()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-semibold transition">
+                            Siguiente<i class="fa-solid fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-summary" class="hidden space-y-6">
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 space-y-6">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <i class="fa-solid fa-book-bookmark text-indigo-400"></i>
+                        Hoja de Resumen de Estudio Rápido
+                    </h2>
+
+                    <div class="grid md:grid-cols-2 gap-6 text-sm">
+                        <!-- Module 1 -->
+                        <div class="space-y-4">
+                            <h3 class="text-base font-bold text-indigo-400 border-l-4 border-indigo-500 pl-3">Bloque 1: Geología & Desastres</h3>
+                            
+                            <div class="bg-slate-800/50 p-3.5 rounded-xl border border-slate-700/60 space-y-1">
+                                <span class="font-bold text-slate-200">1. Sismos:</span>
+                                <p class="text-slate-400 text-xs">Hipocentro = punto profundo donde nace el sismo. Epicentro = punto en la superficie directo arriba del foco.</p>
+                            </div>
+
+                            <div class="bg-slate-800/50 p-3.5 rounded-xl border border-slate-700/60 space-y-1">
+                                <span class="font-bold text-slate-200">2. Triángulo del Fuego:</span>
+                                <p class="text-slate-400 text-xs">Combustible (lo que arde) + Comburente (Oxígeno $O_2$) + Calor (Energía/Ignición).</p>
+                            </div>
+
+                            <div class="bg-slate-800/50 p-3.5 rounded-xl border border-slate-700/60 space-y-1">
+                                <span class="font-bold text-slate-200">3. Incendios Forestales:</span>
+                                <p class="text-slate-400 text-xs">Regla del 30 (Temp > 30°C, Viento > 30km/h, Humedad < 30%). El fuego sube más rápido por laderas precalentadas.</p>
+                            </div>
+
+                            <div class="bg-slate-800/50 p-3.5 rounded-xl border border-slate-700/60 space-y-1">
+                                <span class="font-bold text-slate-200">4. Aluviones:</span>
+                                <p class="text-slate-400 text-xs">Flujos de agua + barro + rocas en pendientes. Riesgos sanitarios: traumatismos, cólera, hepatitis A por contaminación de agua.</p>
+                            </div>
+                        </div>
+
+                        <!-- Module 2 -->
+                        <div class="space-y-4">
+                            <h3 class="text-base font-bold text-indigo-400 border-l-4 border-indigo-500 pl-3">Bloque 2: Átomo & Química Orgánica</h3>
+                            
+                            <div class="bg-slate-800/50 p-3.5 rounded-xl border border-slate-700/60 space-y-1">
+                                <span class="font-bold text-slate-200">5. Partículas Subatómicas:</span>
+                                <p class="text-slate-400 text-xs">Protones ($p^+$, masa 1amu), Neutrones ($n^0$, masa 1amu), Electrones ($e^-$, masa despreciable fuera del núcleo).</p>
+                            </div>
+
+                            <div class="bg-slate-800/50 p-3.5 rounded-xl border border-slate-700/60 space-y-1">
+                                <span class="font-bold text-slate-200">6. $Z$ y $A$:</span>
+                                <p class="text-slate-400 text-xs">$Z$ (Nº Atómico) = Protones. $A$ (Nº Másico) = Protones + Neutrones. $n^0 = A - Z$.</p>
+                            </div>
+
+                            <div class="bg-slate-800/50 p-3.5 rounded-xl border border-slate-700/60 space-y-1">
+                                <span class="font-bold text-slate-200">7. Carbono:</span>
+                                <p class="text-slate-400 text-xs">Tetravalente (forma 4 enlaces covalentes). Forma cadenas simples o ramificadas (catenación).</p>
+                            </div>
+
+                            <div class="bg-slate-800/50 p-3.5 rounded-xl border border-slate-700/60 space-y-1">
+                                <span class="font-bold text-slate-200">8. Alcanos vs Alquenos:</span>
+                                <p class="text-slate-400 text-xs">Alcanos = Enlaces SIMPLES ($C_nH_{2n+2}$). Alquenos = Enlace DOBLE ($C_nH_{2n}$). Prefijos: Met(1), Et(2), Prop(3), But(4).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        // Database of 40 Questions
+        const questionsData = [
+            // Sismos y Fenómenos Geológicos (1-5)
+            { id: 1, category: "bloque1", catName: "Sismos", question: "¿Qué punto en el interior de la Tierra es la fuente exacta donde se origina un sismo?", options: ["Epicentro", "Hipocentro (o Foco)", "Falla tectónica", "Manto superior"], correct: 1, explanation: "El hipocentro es el punto de ruptura subterráneo; el epicentro es el punto proyectado en la superficie justo arriba." },
+            { id: 2, category: "bloque1", catName: "Sismos", question: "¿Cuál es la diferencia directa entre el hipocentro y el epicentro?", options: ["El hipocentro está en la superficie y el epicentro en el mar.", "El epicentro es la zona profunda de fricción y el hipocentro es la ciudad más afectada.", "El hipocentro es el foco subterráneo y el epicentro es la proyección en la superficie.", "No hay diferencia, son sinónimos exactos."], correct: 2, explanation: "El hipocentro es profundo/subterráneo y el epicentro es el lugar de la superficie terrestre directamente sobre él." },
+            { id: 3, category: "bloque1", catName: "Sismos", question: "¿Qué fenómeno secundario suele ocurrir cuando un sismo de gran magnitud tiene un hipocentro poco profundo bajo el lecho marino?", options: ["Tsunami o maremoto", "Aluvión repentino", "Erupción freática", "Formación de dunas"], correct: 0, explanation: "El desplazamiento vertical del lecho marino tras el sismo empuja la columna de agua provocando olas gigantescas (tsunamis)." },
+            { id: 4, category: "bloque1", catName: "Geología", question: "¿A qué se debe el movimiento de las placas tectónicas que genera los sismos?", options: ["A la rotación del núcleo sólido externo", "A corrientes de convección de magma en el manto terrestre", "Al calentamiento por los rayos solares", "A la gravedad gravitacional de la Luna"], correct: 1, explanation: "Las corrientes de convección del manto mueven las placas tectónicas rígidas de la litosfera provocando choques y acumulación de tensión." },
+            { id: 5, category: "bloque1", catName: "Geología", question: "Los sismos se miden cuantitativamente según la energía liberada mediante:", options: ["La escala de Mercalli Modificada", "La escala de Richter (o magnitud de momento)", "La regla de Beaufort", "La escala de Mohs"], correct: 1, explanation: "La escala de Richter/Magnitud de Momento mide la energía liberada de forma objetiva, mientras que Mercalli mide la intensidad o daños percibidos." },
+
+            // Incendios forestales y Triángulo del fuego (6-11)
+            { id: 6, category: "bloque1", catName: "Incendios", question: "¿Cuáles son los tres componentes esenciales del triángulo del fuego?", options: ["Combustible, Oxígeno y Agua", "Combustible, Comburente (Oxígeno) y Calor (Energía de ignición)", "Humo, Chispa y Madera", "Dióxido de carbono, Viento y Radiación"], correct: 1, explanation: "Para que ocurra la combustión se requiere un material orgánico (combustible), un oxidante (comburente/oxígeno) y calor." },
+            { id: 7, category: "bloque1", catName: "Incendios", question: "¿Cuál es la causa principal de la inmensa mayoría (>95%) de los incendios forestales?", options: ["Erupciones volcánicas", "Caída de rayos térmicos", "Acción humana (negligencia, intencionalidad o descuidos)", "Combustión espontánea de hojas secas"], correct: 2, explanation: "Más del 95% a 99% de los incendios forestales son de origen antrópico (actividad humana)." },
+            { id: 8, category: "bloque1", catName: "Incendios", question: "¿Por qué el fuego se propaga más rápidamente en una ladera o pendiente empinada cuesta arriba?", options: ["Porque el viento siempre sopla hacia abajo", "Porque las llamas y el aire caliente precalientan la vegetación que está más arriba", "Porque en las alturas hay más concentración de oxígeno", "Porque la gravedad empuja las llamas hacia arriba"], correct: 1, explanation: "El calor convectivo asciende por la ladera, secando y precalentando el combustible superior antes de que lleguen las llamas." },
+            { id: 9, category: "bloque1", catName: "Incendios", question: "¿En qué consiste la regla meteorológica '30-30-30' crítica para incendios forestales?", options: ["30 árboles por metro, 30 litros de agua, 30 minutos de duración", "Temperatura > 30°C, Viento > 30 km/h, Humedad relativa < 30%", "30% de cenizas, 30 mm de lluvia, 30 días de sequía", "30 hectáreas quemadas, 30 bomberos, 30° de inclinación"], correct: 1, explanation: "Temperaturas altas (>30°C), vientos fuertes (>30 km/h) y muy baja humedad ambiental (<30%) generan condiciones hiperpropicias para incendios extremos." },
+            { id: 10, category: "bloque1", catName: "Incendios", question: "Desde el punto de vista químico, la combustión se clasifica como una reacción de tipo:", options: ["Oxidación exergónica/exotérmica rápida", "Reducción endotérmica", "Precipitación ácida", "Fisión nuclear atómica"], correct: 0, explanation: "Es una reacción química de oxidación rápida que libera abundante calor y luz (exotérmica)." },
+            { id: 11, category: "bloque1", catName: "Prevención", question: "¿Qué medida preventiva consiste en eliminar franjas de vegetación para interrumpir la continuidad del combustible?", options: ["Inundación selectiva", "Reforestación intensiva", "Cortafuegos", "Quema de expansión"], correct: 2, explanation: "Los cortafuegos remueven todo el combustible orgánico en una franja delimitada para impedir que las llamas avancen." },
+
+            // Aluviones y salud (12-15)
+            { id: 12, category: "bloque1", catName: "Aluviones", question: "¿Qué define principalmente a un aluvión?", options: ["El colapso de un edificio por terremoto", "Un flujo rápido de barro, agua, rocas y detritos por quebradas o valles", "Un maremoto causado por meteoritos", "Una corriente de aire seco de alta velocidad"], correct: 1, explanation: "Un aluvión es un flujo denso y veloz de agua mezclada con sedimentos, rocas y escombros que desciende por laderas o cauces de ríos." },
+            { id: 13, category: "bloque1", catName: "Aluviones", question: "¿Qué condición de precipitaciones facilita la aparición de aluviones en zonas cordilleranas?", options: ["Nieve fina con temperaturas bajo cero", "Lluvias intensas en zonas de alta cordillera donde normalmente cae nieve (isoterma cero alta)", "Llovizna suave prolongada", "Granizo de pequeño tamaño"], correct: 1, explanation: "La lluvia intensa en zonas altas (isoterma cero alta) erosiona el suelo rápidamente y arrastra barro y rocas sin ser retenida como nieve." },
+            { id: 14, category: "bloque1", catName: "Aluviones", question: "¿Cuál es una consecuencia sanitaria grave tras un aluvión debido al colapso de infraestructuras?", options: ["Incremento de alergias por polen", "Brotes de infecciones gastrointestinales por contaminación de las redes de agua potable", "Aumento de radiación ultravioleta", "Envenenamiento por monóxido de carbono en las calles"], correct: 1, explanation: "La destrucción de tuberías y plantas de alcantarillado contamina las fuentes de agua, generando riesgos de Hepatitis A, Cólera y gastroenteritis." },
+            { id: 15, category: "bloque1", catName: "Gestión Riesgos", question: "Las tres etapas básicas en la gestión del riesgo de desastres naturales son:", options: ["Observación, Experimentación e Hipótesis", "Prevención/Preparación (Antes), Respuesta (Durante) y Recuperación (Después)", "Evacuación, Combate y Reclamo", "Alerta verde, Alerta amarilla y Alerta naranja"], correct: 1, explanation: "Toda estrategia integral abarca la preparación (antes), la atención a la emergencia (durante) y la reconstrucción/recuperación (después)." },
+
+            // Modelos atómicos y estructura del átomo (16-22)
+            { id: 16, category: "bloque2", catName: "Modelos Atómicos", question: "¿Qué científico propuso el modelo del 'Pudín de Pasas', donde el átomo es una esfera positiva con electrones incrustados?", options: ["John Dalton", "J.J. Thomson", "Ernest Rutherford", "Niels Bohr"], correct: 1, explanation: "Thomson descubrió el electrón e imaginó el átomo como una masa positiva repleta de electrones incrustados como pasas en un pudín." },
+            { id: 17, category: "bloque2", catName: "Modelos Atómicos", question: "El experimento de la lámina de oro de Rutherford demostró que:", options: ["El átomo es indivisible e indestructible.", "El átomo posee un núcleo pequeño, denso y positivo, y la mayor parte es espacio vacío.", "Los electrones están pegados al núcleo.", "Los neutrones son más pesados que los protones."], correct: 1, explanation: "Al rebotar solo unas pocas partículas alfa, Rutherford dedujo la existencia de un núcleo denso positivo y un gran espacio vacío rodeándolo." },
+            { id: 18, category: "bloque2", catName: "Modelos Atómicos", question: "¿Qué novedad introdujo el modelo atómico de Niels Bohr?", options: ["El descubrimiento de los neutrones", "Órbitas electrónicas cuantizadas en niveles definidos de energía", "La existencia de quarks", "La teoría de los orbitales difusos tridimensionales"], correct: 1, explanation: "Bohr postuló que los electrones giran únicamente en órbitas o niveles circulares con energías cuantizadas fijas." },
+            { id: 19, category: "bloque2", catName: "Estructura Átomo", question: "¿Cuáles son las tres partículas subatómicas fundamentales y sus cargas eléctricas?", options: ["Protones (+), Neutrones (neutros), Electrones (-)", "Protones (-), Neutrones (+), Electrones (neutros)", "Positrones (+), Neutrones (-), Fotones (neutros)", "Quarks (+), Leptones (-), Gluones (neutros)"], correct: 0, explanation: "El núcleo contiene protones (positivos) y neutrones (sin carga), mientras los electrones (negativos) se ubican en la corteza." },
+            { id: 20, category: "bloque2", catName: "Estructura Átomo", question: "¿En qué región del átomo se concentra casi la totalidad (99.9%) de su masa?", options: ["En la nube electrónica exterior", "En los orbitales $s$ y $p$", "En el núcleo central", "Se distribuye por igual entre el núcleo y los electrones"], correct: 2, explanation: "Los protones y neutrones en el núcleo pesan aproximadamente 1836 veces más que cada electrón." },
+            { id: 21, category: "bloque2", catName: "Modelos Atómicos", question: "Según el modelo mecánico-cuántico actual, ¿qué es un orbital atómico?", options: ["Una trayectoria circular perfecta del electrón", "Una región tridimensional con alta probabilidad de encontrar un electrón", "La superficie exterior rígida del átomo", "El punto exacto donde el electrón se detiene"], correct: 1, explanation: "El principio de incertidumbre establece que no hay órbitas fijas, sino zonas probabilísticas llamadas orbitales." },
+            { id: 22, category: "bloque2", catName: "Estructura Átomo", question: "Un átomo neutro de Sodio ($Na$) tiene 11 protones. ¿Cuántos electrones posee?", options: ["22 electrones", "11 electrones", "12 electrones", "0 electrones"], correct: 1, explanation: "En cualquier átomo neutro, el número de cargas positivas (protones) es exactamente igual al de cargas negativas (electrones)." },
+
+            // Número atómico, número másico y partículas (23-28)
+            { id: 23, category: "bloque2", catName: "Números Atómicos", question: "El Número Atómico ($Z$) representa:", options: ["La suma de protones más neutrones", "La cantidad de protones en el núcleo de un átomo", "La cantidad total de neutrones", "La masa atómica promedio expresada en gramos"], correct: 1, explanation: "El número atómico $Z$ define la identidad del elemento y equivale a la cantidad de protones en el núcleo." },
+            { id: 24, category: "bloque2", catName: "Números Atómicos", question: "El Número Másico ($A$) de un átomo corresponde a la suma de:", options: ["Protones + Electrones", "Protones + Neutrones", "Neutrones + Electrones", "Únicamente los Protones"], correct: 1, explanation: "Como la masa reside en el núcleo, $A = \text{Protones} (Z) + \text{Neutrones} (n^0)$." },
+            { id: 25, category: "bloque2", catName: "Números Atómicos", question: "Un átomo de Carbono tiene $Z = 6$ y $A = 14$. ¿Cuántos neutrones tiene en su núcleo?", options: ["6 neutrones", "14 neutrones", "8 neutrones", "20 neutrones"], correct: 2, explanation: "Calculamos los neutrones restando: $n^0 = A - Z \implies 14 - 6 = 8$." },
+            { id: 26, category: "bloque2", catName: "Números Atómicos", question: "¿Cómo se denominan los átomos del mismo elemento que tienen igual $Z$ (mismos protones) pero diferente $A$ (diferentes neutrones)?", options: ["Isóbaros", "Isótopos", "Isómeros", "Iones anhidros"], correct: 1, explanation: "Los isótopos son formas de un mismo elemento con distinto número de neutrones en sus núcleos (ej: Carbono-12 y Carbono-14)." },
+            { id: 27, category: "bloque2", catName: "Números Atómicos", question: "Si un átomo neutro pierde 2 electrones se transforma en:", options: ["Un anión con carga de -2", "Un catión con carga de +2", "Un isótopo más pesado", "Un átomo de otro elemento diferente"], correct: 1, explanation: "Al perder cargas negativas (electrones), se vuelve un ión positivo denominado catión ($+2$)." },
+            { id: 28, category: "bloque2", catName: "Números Atómicos", question: "Un ión $Cl^-$ (anión cloruro) tiene $Z = 17$ y $A = 35$. ¿Cuántos electrones posee?", options: ["17 electrones", "18 electrones", "16 electrones", "35 electrones"], correct: 1, explanation: "Teniendo $Z=17$ (17 protones), la carga $-1$ indica que ganó 1 electrón adicional: $17 + 1 = 18$ electrones." },
+
+            // Estequiometría y balance de ecuaciones (29-33)
+            { id: 29, category: "bloque2", catName: "Estequiometría", question: "¿Qué ley fundamental dicta que 'la materia no se crea ni se destruye, solo se transforma' obligando a balancear ecuaciones?", options: ["Ley de Proust", "Ley de Lavoisier (Conservación de la Masa)", "Ley de Avogadro", "Ley de Gay-Lussac"], correct: 1, explanation: "La ley de conservación de la masa de Antoine Lavoisier establece que el número de átomos de cada elemento debe ser idéntico en reactantes y productos." },
+            { id: 30, category: "bloque2", catName: "Estequiometría", question: "En la ecuación no balanceada $H_2 + O_2 \rightarrow H_2O$, ¿cuáles son los coeficientes estequiométricos correctos para balancearla?", options: ["1, 1 -> 1", "2, 1 -> 2", "2, 2 -> 2", "1, 2 -> 1"], correct: 1, explanation: "Con $2 H_2 + 1 O_2 \rightarrow 2 H_2O$ obtenemos 4 átomos de Hidrógeno y 2 átomos de Oxígeno en ambos lados de la reacción." },
+            { id: 31, category: "bloque2", catName: "Estequiometría", question: "¿Qué representa la unidad del 'Mol' en química?", options: ["La masa en kilogramos de un litro de agua", "Una cantidad de sustancia que contiene $6.022 \times 10^{23}$ partículas (Número de Avogadro)", "El volumen ocupado por cualquier sólido a temperatura ambiente", "La cantidad de electrones de un átomo atómico neutral"], correct: 1, explanation: "1 Mol equivale a $6.022 \times 10^{23}$ entidades elementales (átomos, moléculas o iones)." },
+            { id: 32, category: "bloque2", catName: "Estequiometría", question: "En la reacción balanceada $CH_4 + 2 O_2 \rightarrow CO_2 + 2 H_2O$, ¿cuántos moles de $O_2$ se necesitan para reaccionar por completo con 3 moles de $CH_4$?", options: ["3 moles", "6 moles", "2 moles", "1.5 moles"], correct: 1, explanation: "La relación molar es 1 : 2. Por tanto, para 3 moles de $CH_4$ se requieren $3 \times 2 = 6$ moles de $O_2$." },
+            { id: 33, category: "bloque2", catName: "Estequiometría", question: "¿Cómo se define al 'reactivo limitante' en una reacción química?", options: ["Aquel reactivo que tiene mayor masa molecular", "Aquel reactivo que se consume primero por completo y limita la cantidad de producto formado", "El reactivo que siempre queda en exceso", "El catalizador que acelera la reacción"], correct: 1, explanation: "El reactivo limitante se agota por completo en primer lugar, determinando el tope de reacción posible." },
+
+            // Química orgánica, hidrocarburos y IUPAC (34-40)
+            { id: 34, category: "bloque2", catName: "Química Orgánica", question: "¿Qué característica esencial del átomo de Carbono le permite formar millones de compuestos orgánicos distintos?", options: ["Su baja electronegatividad", "Su capacidad de ser monovalente", "Su tetravalencia y propiedad de catenación (formar enlaces estables C-C)", "Su elevado peso atómico de 100 amu"], correct: 2, explanation: "La tetravalencia (4 enlaces) y la catenación permiten al carbono formar cadenas largas, ramificadas y anillos de gran estabilidad." },
+            { id: 35, category: "bloque2", catName: "Química Orgánica", question: "Los hidrocarburos son compuestos constituidos exclusivamente por átomos de:", options: ["Carbono, Hidrógeno y Oxígeno", "Carbono e Hidrógeno", "Carbono, Nitrógeno y Azufre", "Hidrógeno y Oxígeno únicamente"], correct: 1, explanation: "Los hidrocarburos están formados solo por átomos de Carbono ($C$) e Hidrógeno ($H$)." },
+            { id: 36, category: "bloque2", catName: "Hidrocarburos", question: "¿Cuál es la principal diferencia estructural entre un Alcano y un Alqueno?", options: ["Los alcanos contienen triples enlaces y los alquenos enlaces simples.", "Los alcanos tienen enlaces simples $C-C$, mientras que los alquenos poseen al menos un enlace doble $C=C$.", "Los alcanos son líquidos y los alquenos son metales.", "Los alcanos poseen átomos de oxígeno"], correct: 1, explanation: "Alcanos = saturados con enlaces simples ($C-C$). Alquenos = insaturados con al menos un enlace doble ($C=C$)." },
+            { id: 37, category: "bloque2", catName: "Nomenclatura IUPAC", question: "¿Cuál es la fórmula general alcánica lineal de un alcano con 'n' carbonos?", options: ["$C_n H_{2n}$", "$C_n H_{2n+2}$", "$C_n H_{2n-2}$", "$C_n H_n$"], correct: 1, explanation: "La fórmula general de los alcanos acíclicos es $C_n H_{2n+2}$ (ej: Propano $C_3H_8$)." },
+            { id: 38, category: "bloque2", catName: "Nomenclatura IUPAC", question: "Según los prefijos IUPAC (met-, et-, prop-, but-), ¿cuál es el nombre de un alcano lineal de 4 carbonos ($C_4H_{10}$)?", options: ["Propano", "Metano", "Butano", "Pentano"], correct: 2, explanation: "Met=1C, Et=2C, Prop=3C, But=4C. Un alcano de 4 carbonos es el Butano." },
+            { id: 39, category: "bloque2", catName: "Nomenclatura IUPAC", question: "¿Cuál es el nombre correcto según la regla IUPAC para un hidrocarburo lineal de 3 carbonos que contiene un enlace doble ($CH_2=CH-CH_3$)?", options: ["Propanal", "Propeno", "Propino", "Buteno"], correct: 1, explanation: "3 carbonos = prefijo 'prop-'. Contiene enlace doble = sufijo '-eno'. Por ende, es el Propeno." },
+            { id: 40, category: "bloque2", catName: "Nomenclatura IUPAC", question: "Al numerar la cadena principal de carbonos de un Alqueno para nombrarlo mediante IUPAC, ¿cuál es la regla fundamental?", options: ["Se numera desde el extremo más cercano al enlace doble para darle el menor localizador posible.", "Se numera siempre de derecha a izquierda sin importar la estructura.", "Se da prioridad a los átomos de hidrógeno.", "El doble enlace siempre debe ir en el carbono número 10."], correct: 0, explanation: "En la nomenclatura de alquenos, la insaturación (enlace doble) tiene prioridad para recibir la numeración de carbono más baja posible." }
+        ];
+
+        // State Management
+        let userAnswers = {}; // { questionId: selectedIndex }
+        let currentFilter = 'all';
+        let currentFCIndex = 0;
+        let isCardFlipped = false;
+
+        // Initialize Page
+        window.addEventListener('DOMContentLoaded', () => {
+            renderQuiz();
+            updateStats();
+            setupFlashcards();
+        });
+
+        // Tab Switching Logic
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-md');
+                btn.classList.add('text-slate-400');
+            });
+            
+            const selectedBtn = document.getElementById(`tab-${tab}`);
+            selectedBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-md');
+            selectedBtn.classList.remove('text-slate-400');
+
+            document.getElementById('view-quiz').classList.add('hidden');
+            document.getElementById('view-flashcards').classList.add('hidden');
+            document.getElementById('view-summary').classList.add('hidden');
+            
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+
+            const filterBox = document.getElementById('filter-box');
+            if (tab === 'quiz') {
+                filterBox.classList.remove('hidden');
+            } else {
+                filterBox.classList.add('hidden');
+            }
+        }
+
+        // Render Quiz Questions
+        function renderQuiz() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            const filteredQuestions = getFilteredQuestions();
+
+            if (filteredQuestions.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-slate-400">No hay preguntas para el filtro seleccionado.</div>`;
+                return;
+            }
+
+            filteredQuestions.forEach((q, idx) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = "bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 transition duration-300 hover:border-slate-700/80";
+                questionCard.id = `q-card-${q.id}`;
+
+                const selectedOpt = userAnswers[q.id];
+                const isAnswered = selectedOpt !== undefined;
+
+                let optionsHTML = '';
+                q.options.forEach((optText, optIdx) => {
+                    let buttonStyle = "bg-slate-800/80 hover:bg-slate-700/70 border-slate-700 text-slate-200";
+                    let iconHTML = `<span class="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center text-xs font-bold text-slate-400 mr-3 flex-shrink-0">${String.fromCharCode(65 + optIdx)}</span>`;
+
+                    if (isAnswered) {
+                        if (optIdx === q.correct) {
+                            buttonStyle = "bg-emerald-950/80 border-emerald-500 text-emerald-200 font-medium";
+                            iconHTML = `<span class="w-6 h-6 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-xs font-bold mr-3 flex-shrink-0"><i class="fa-solid fa-check"></i></span>`;
+                        } else if (optIdx === selectedOpt) {
+                            buttonStyle = "bg-rose-950/80 border-rose-500 text-rose-200 font-medium";
+                            iconHTML = `<span class="w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs font-bold mr-3 flex-shrink-0"><i class="fa-solid fa-xmark"></i></span>`;
+                        } else {
+                            buttonStyle = "bg-slate-800/40 border-slate-800/80 text-slate-500 opacity-60";
+                        }
+                    }
+
+                    optionsHTML += `
+                        <button onclick="selectOption(${q.id}, ${optIdx})" 
+                                ${isAnswered ? 'disabled' : ''} 
+                                class="w-full text-left p-3.5 rounded-xl border ${buttonStyle} flex items-center transition duration-200 text-sm">
+                            ${iconHTML}
+                            <span>${escapeHTML(optText)}</span>
+                        </button>
+                    `;
+                });
+
+                let explanationHTML = '';
+                if (isAnswered) {
+                    const isCorrect = selectedOpt === q.correct;
+                    explanationHTML = `
+                        <div class="mt-3 p-3.5 rounded-xl text-xs ${isCorrect ? 'bg-emerald-950/40 border border-emerald-900/60 text-emerald-300' : 'bg-rose-950/40 border border-rose-900/60 text-rose-300'} flex items-start gap-2.5">
+                            <i class="fa-solid ${isCorrect ? 'fa-circle-check text-emerald-400' : 'fa-circle-exclamation text-rose-400'} text-sm mt-0.5"></i>
+                            <div>
+                                <strong class="font-semibold">${isCorrect ? '¡Correcto!' : 'Respuesta Incorrecta.'}</strong>
+                                <p class="mt-0.5 text-slate-300 leading-relaxed">${escapeHTML(q.explanation)}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                questionCard.innerHTML = `
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="space-y-1">
+                            <span class="inline-block px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-indigo-950 text-indigo-300 border border-indigo-800/50">
+                                ${q.catName}
+                            </span>
+                            <h3 class="text-base font-bold text-slate-100 flex gap-2">
+                                <span class="text-indigo-400 font-mono">${q.id}.</span>
+                                <span>${escapeHTML(q.question)}</span>
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-2.5 pt-1">
+                        ${optionsHTML}
+                    </div>
+
+                    ${explanationHTML}
+                `;
+
+                container.appendChild(questionCard);
+            });
+        }
+
+        // Handle option click
+        function selectOption(questionId, optionIndex) {
+            if (userAnswers[questionId] !== undefined) return;
+
+            userAnswers[questionId] = optionIndex;
+            
+            // Check if all questions are completed to trigger confetti
+            if (Object.keys(userAnswers).length === questionsData.length) {
+                confetti({
+                    particleCount: 120,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            renderQuiz();
+            updateStats();
+        }
+
+        // Filter Logic
+        function filterQuiz(filterKey) {
+            currentFilter = filterKey;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-slate-800', 'text-indigo-300', 'font-semibold');
+                btn.classList.add('text-slate-400');
+            });
+
+            event.currentTarget.classList.add('active', 'bg-slate-800', 'text-indigo-300', 'font-semibold');
+            event.currentTarget.classList.remove('text-slate-400');
+
+            const titles = {
+                'all': 'Todas las Preguntas (40)',
+                'bloque1': '1. Sismos & Desastres (20)',
+                'bloque2': '2. Átomo & Química (20)'
+            };
+            document.getElementById('current-filter-title').innerText = titles[filterKey];
+
+            renderQuiz();
+        }
+
+        function getFilteredQuestions() {
+            if (currentFilter === 'all') return questionsData;
+            return questionsData.filter(q => q.category === currentFilter);
+        }
+
+        // Update Stats Counters
+        function updateStats() {
+            let correctCount = 0;
+            const total = questionsData.length;
+
+            Object.keys(userAnswers).forEach(qId => {
+                const question = questionsData.find(q => q.id === parseInt(qId));
+                if (question && userAnswers[qId] === question.correct) {
+                    correctCount++;
+                }
+            });
+
+            const percentage = Math.round((correctCount / total) * 100);
+
+            document.getElementById('stat-score').innerText = `${correctCount} / ${total}`;
+            document.getElementById('stat-bar').style.width = `${(correctCount / total) * 100}%`;
+            document.getElementById('global-progress-text').innerText = `${Object.keys(userAnswers).length} / ${total}`;
+            document.getElementById('badge-quiz-score').innerText = `${percentage}%`;
+        }
+
+        // Reveal all answers
+        function showAllAnswers() {
+            questionsData.forEach(q => {
+                if (userAnswers[q.id] === undefined) {
+                    userAnswers[q.id] = q.correct;
+                }
+            });
+            renderQuiz();
+            updateStats();
+        }
+
+        // Reset All
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            if (confirm("¿Quieres reiniciar el cuestionario y borrar las respuestas?")) {
+                userAnswers = {};
+                renderQuiz();
+                updateStats();
+            }
+        });
+
+        // Flashcards Logic
+        function setupFlashcards() {
+            updateFlashcard();
+        }
+
+        function updateFlashcard() {
+            const q = questionsData[currentFCIndex];
+            document.getElementById('fc-index').innerText = currentFCIndex + 1;
+            document.getElementById('fc-total').innerText = questionsData.length;
+            document.getElementById('fc-category').innerText = q.catName;
+            document.getElementById('fc-question').innerText = q.question;
+            document.getElementById('fc-answer').innerText = `${String.fromCharCode(65 + q.correct)}: ${q.options[q.correct]}\n\n(${q.explanation})`;
+
+            // Ensure card is non-flipped on update
+            const inner = document.getElementById('flashcard-inner');
+            inner.classList.remove('rotate-y-180');
+            isCardFlipped = false;
+        }
+
+        function flipCard() {
+            const inner = document.getElementById('flashcard-inner');
+            isCardFlipped = !isCardFlipped;
+            if (isCardFlipped) {
+                inner.classList.add('rotate-y-180');
+            } else {
+                inner.classList.remove('rotate-y-180');
+            }
+        }
+
+        function nextCard() {
+            currentFCIndex = (currentFCIndex + 1) % questionsData.length;
+            updateFlashcard();
+        }
+
+        function prevCard() {
+            currentFCIndex = (currentFCIndex - 1 + questionsData.length) % questionsData.length;
+            updateFlashcard();
+        }
+
+        // Helper function
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+    </script>
+</body>
+</html>
